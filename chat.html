@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+      @font-face {
+        font-family: myFont;
+        src: url(./fonts/PPRightGothic-WideMedium.woff);
+      }
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        background-color: #f4f4f4;
+      }
+
+      .container {
+        display: flex;
+        height: 100vh;
+        width: 100%;
+      }
+
+      .image-container {
+        flex: 1;
+        padding: 0px;
+        height: 100%;
+      }
+
+      .form-container {
+        flex: 2;
+        padding: 0px;
+        box-sizing: border-box;
+        background: #fff;
+      }
+
+      img {
+        width: 100%;
+        display: block;
+        height: 100%;
+      }
+
+      form {
+        background-color: #fff;
+        padding: 0px;
+        border-radius: 0px;
+      }
+      select {
+        width: calc(100% - 16px);
+        height: 30px;
+        border: 1px solid black;
+        border-radius: 4px;
+      }
+      input {
+        width: calc(100% - 16px);
+        border: 1px solid black;
+        border-radius: 4px;
+        height: 30px;
+      }
+      textarea {
+        width: 98%;
+      }
+
+      .form-group {
+        width: 100%;
+        margin-top: 10px;
+      }
+
+      .form-group label {
+        display: block;
+        padding-bottom: 10px;
+      }
+
+      .form-btn {
+        margin-top: 30px;
+      }
+      @media screen and (max-width: 768px) {
+        .image-container {
+          display: none;
+        }
+      }
+
+      .message {
+        color: red;
+        margin-top: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="image-container">
+        <img src="form_img.png" alt="Image" />
+      </div>
+      <div class="form-container" style="width: 580px">
+        <form id="myForm" style="padding: 40px">
+          <a href="index.html">
+            <img src="back.png" alt="Image" style="height: 27px; width: 67px" />
+          </a>
+          <h3 style="font-family: myFont">Submit a request</h3>
+
+          <div id="form-message">
+            <div class="form-group">
+              <label for="product">Product</label>
+              <select id="product" Product="product" name="product">
+                <option value="Parkway wallet">Parkway wallet</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="email">Email address</label>
+              <input type="email" id="email" name="email" />
+            </div>
+
+            <div class="form-group">
+              <label for="name">Subject</label>
+              <input type="subject" id="subject" name="subject" />
+            </div>
+
+            <div class="form-group">
+              <label for="text">Description</label>
+              <textarea id="description" name="description" rows="4"></textarea>
+            </div>
+
+            <div class="form-group">
+              <label for="file">Attachment (Optional)</label>
+              <input type="file" id="file" name="file" style="height: 20px" />
+            </div>
+
+            <button
+              type="submit"
+              class="form-btn"
+              style="
+                width: 250px;
+                height: 52px;
+                border-radius: 26px;
+                background-color: #f9956b;
+              "
+              id="submit"
+            >
+              Submit
+            </button>
+            <div class="message" id="file-message"></div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <script>
+      const form = document.querySelector("#myForm");
+      const fileInput = document.querySelector("#file");
+      const fileMessage = document.querySelector("#file-message");
+
+      form.addEventListener("submit", async function (event) {
+        event.preventDefault();
+        const formData = new FormData(form);
+
+        const file = fileInput.files[0];
+
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = async function () {
+            const base64String = reader.result.split(",")[1];
+            const bodyData = {
+              Data: {
+                Recipients: [
+                  {
+                    Value: "fonyejose@parkway.ng",
+                    Type: 1,
+                    Channel: 0,
+                  },
+                ],
+                Params: {
+                  Subject: "Request for Demo on Parkway Rails",
+                  Sender: formData.get("email"),
+                  Params: JSON.stringify({
+                    product: formData.get("product"),
+                    EmailAddress: formData.get("email"),
+                    Subject: formData.get("subject"),
+                    Description: formData.get("description"),
+                  }),
+                },
+                Attachments: {
+                  [file.name]: base64String,
+                },
+              },
+              Name: "demo.request",
+            };
+
+            await sendDataToServer(bodyData);
+            window.location.reload(); 
+          };
+          reader.readAsDataURL(file);
+        } else {
+          fileMessage.textContent = "No file selected";
+          window.location.reload();
+        }
+      });
+
+      async function sendDataToServer(data) {
+        try {
+          const response = await fetch(
+            "https://pulse.parkwayprojects.xyz/api/pulse/createPulse",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "pulse.origin": "Parkway.Default",
+              },
+              body: JSON.stringify(data),
+            }
+          );
+          const result = await response.json();
+          console.log("Success:", result);
+        } catch (error) {
+          console.error("Error:", error);
+        }
+      }
+    </script>
+  </body>
+</html>
